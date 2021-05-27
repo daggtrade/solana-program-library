@@ -10,7 +10,10 @@ import {AccountLayout, Token, TOKEN_PROGRAM_ID} from '@solana/spl-token';
 import {TokenSwap, CurveType, TOKEN_SWAP_PROGRAM_ID} from '../src';
 import {sendAndConfirmTransaction} from '../src/util/send-and-confirm-transaction';
 import {newAccountWithLamports} from '../src/util/new-account-with-lamports';
+
+// constant url
 import {url} from '../src/util/url';
+
 import {sleep} from '../src/util/sleep';
 
 // The following globals are created by `createTokenSwap` and used by subsequent tests
@@ -80,7 +83,7 @@ function assert(condition: boolean, message?: string) {
 let connection: Connection;
 async function getConnection(): Promise<Connection> {
   if (connection) return connection;
-
+  // url
   connection = new Connection(url, 'recent');
   const version = await connection.getVersion();
 
@@ -88,12 +91,19 @@ async function getConnection(): Promise<Connection> {
   return connection;
 }
 
+
+// Test CreateTokenSwap and LoadTokenSwap
 export async function createTokenSwap(): Promise<void> {
+  
+  // mock using url from url.ts utility
   const connection = await getConnection();
+
   const payer = await newAccountWithLamports(connection, 1000000000);
   owner = await newAccountWithLamports(connection, 1000000000);
+
   const tokenSwapAccount = new Account();
 
+  // TODO: terminology !!!!
   [authority, nonce] = await PublicKey.findProgramAddress(
     [tokenSwapAccount.publicKey.toBuffer()],
     TOKEN_SWAP_PROGRAM_ID,
@@ -102,8 +112,8 @@ export async function createTokenSwap(): Promise<void> {
   console.log('creating pool mint');
   tokenPool = await Token.createMint(
     connection,
-    payer,
-    authority,
+    payer,      // TODO:  payer ??
+    authority, // TODO: authority
     null,
     2,
     TOKEN_PROGRAM_ID,
@@ -111,14 +121,19 @@ export async function createTokenSwap(): Promise<void> {
 
   console.log('creating pool account');
   tokenAccountPool = await tokenPool.createAccount(owner.publicKey);
+  
+  // specified or go to owner
+  // ? why not used
   const ownerKey = SWAP_PROGRAM_OWNER_FEE_ADDRESS || owner.publicKey.toString();
   feeAccount = await tokenPool.createAccount(new PublicKey(ownerKey));
 
+
+  /// TOken A
   console.log('creating token A');
   mintA = await Token.createMint(
     connection,
     payer,
-    owner.publicKey,
+    owner.publicKey, // authority
     null,
     2,
     TOKEN_PROGRAM_ID,
@@ -126,9 +141,12 @@ export async function createTokenSwap(): Promise<void> {
 
   console.log('creating token A account');
   tokenAccountA = await mintA.createAccount(authority);
-  console.log('minting token A to swap');
-  await mintA.mintTo(tokenAccountA, owner, [], currentSwapTokenA);
 
+  console.log('minting token A to swap');
+  await mintA.mintTo(tokenAccountA, owner, [], currentSwapTokenA); // A amount
+
+
+  /// TOken B
   console.log('creating token B');
   mintB = await Token.createMint(
     connection,
@@ -141,14 +159,19 @@ export async function createTokenSwap(): Promise<void> {
 
   console.log('creating token B account');
   tokenAccountB = await mintB.createAccount(authority);
-  console.log('minting token B to swap');
-  await mintB.mintTo(tokenAccountB, owner, [], currentSwapTokenB);
 
+  console.log('minting token B to swap');
+  await mintB.mintTo(tokenAccountB, owner, [], currentSwapTokenB); // B amount
+
+  /// Swap
   console.log('creating token swap');
+  
   const swapPayer = await newAccountWithLamports(connection, 10000000000);
+
+  // action
   tokenSwap = await TokenSwap.createTokenSwap(
     connection,
-    swapPayer,
+    swapPayer,  // who
     tokenSwapAccount,
     authority,
     tokenAccountA,
@@ -172,7 +195,9 @@ export async function createTokenSwap(): Promise<void> {
     CURVE_TYPE,
   );
 
+  /// Load Swap data
   console.log('loading token swap');
+  
   const fetchedTokenSwap = await TokenSwap.loadTokenSwap(
     connection,
     tokenSwapAccount.publicKey,
@@ -180,6 +205,7 @@ export async function createTokenSwap(): Promise<void> {
     swapPayer,
   );
 
+  // account checking
   assert(fetchedTokenSwap.tokenProgramId.equals(TOKEN_PROGRAM_ID));
   assert(fetchedTokenSwap.tokenAccountA.equals(tokenAccountA));
   assert(fetchedTokenSwap.tokenAccountB.equals(tokenAccountB));
@@ -187,32 +213,35 @@ export async function createTokenSwap(): Promise<void> {
   assert(fetchedTokenSwap.mintB.equals(mintB.publicKey));
   assert(fetchedTokenSwap.poolToken.equals(tokenPool.publicKey));
   assert(fetchedTokenSwap.feeAccount.equals(feeAccount));
+
+  // pure trading fee
   assert(
     TRADING_FEE_NUMERATOR == fetchedTokenSwap.tradeFeeNumerator.toNumber(),
   );
   assert(
     TRADING_FEE_DENOMINATOR == fetchedTokenSwap.tradeFeeDenominator.toNumber(),
   );
+  
+  // owner trading
   assert(
-    OWNER_TRADING_FEE_NUMERATOR ==
-      fetchedTokenSwap.ownerTradeFeeNumerator.toNumber(),
+    OWNER_TRADING_FEE_NUMERATOR == fetchedTokenSwap.ownerTradeFeeNumerator.toNumber(),
   );
   assert(
-    OWNER_TRADING_FEE_DENOMINATOR ==
-      fetchedTokenSwap.ownerTradeFeeDenominator.toNumber(),
+    OWNER_TRADING_FEE_DENOMINATOR == fetchedTokenSwap.ownerTradeFeeDenominator.toNumber(),
+  );
+
+  // withdraw
+  assert(
+    OWNER_WITHDRAW_FEE_NUMERATOR == fetchedTokenSwap.ownerWithdrawFeeNumerator.toNumber(),
   );
   assert(
-    OWNER_WITHDRAW_FEE_NUMERATOR ==
-      fetchedTokenSwap.ownerWithdrawFeeNumerator.toNumber(),
+    OWNER_WITHDRAW_FEE_DENOMINATOR == fetchedTokenSwap.ownerWithdrawFeeDenominator.toNumber(),
   );
-  assert(
-    OWNER_WITHDRAW_FEE_DENOMINATOR ==
-      fetchedTokenSwap.ownerWithdrawFeeDenominator.toNumber(),
-  );
+
+  // host
   assert(HOST_FEE_NUMERATOR == fetchedTokenSwap.hostFeeNumerator.toNumber());
-  assert(
-    HOST_FEE_DENOMINATOR == fetchedTokenSwap.hostFeeDenominator.toNumber(),
-  );
+  assert(HOST_FEE_DENOMINATOR == fetchedTokenSwap.hostFeeDenominator.toNumber());
+  // curve type
   assert(CURVE_TYPE == fetchedTokenSwap.curveType);
 }
 
@@ -345,6 +374,7 @@ export async function withdrawAllTokenTypes(): Promise<void> {
   currentFeeAmount = feeAmount;
 }
 
+
 export async function createAccountAndSwapAtomic(): Promise<void> {
   console.log('Creating swap token a account');
   let userAccountA = await mintA.createAccount(owner.publicKey);
@@ -366,6 +396,7 @@ export async function createAccountAndSwapAtomic(): Promise<void> {
     }),
   );
 
+  // Init acc
   transaction.add(
     Token.createInitAccountInstruction(
       mintB.programId,
@@ -375,6 +406,7 @@ export async function createAccountAndSwapAtomic(): Promise<void> {
     ),
   );
 
+  // approve instruction
   const userTransferAuthority = new Account();
   transaction.add(
     Token.createApproveInstruction(
@@ -387,6 +419,7 @@ export async function createAccountAndSwapAtomic(): Promise<void> {
     ),
   );
 
+  // swap instruction
   transaction.add(
     TokenSwap.swapInstruction(
       tokenSwap.tokenSwap,
@@ -406,8 +439,9 @@ export async function createAccountAndSwapAtomic(): Promise<void> {
     ),
   );
 
-  // Send the instructions
+  // send And Confirm Transaction
   console.log('sending big instruction');
+
   await sendAndConfirmTransaction(
     'create account, approve transfer, swap',
     connection,
@@ -417,14 +451,22 @@ export async function createAccountAndSwapAtomic(): Promise<void> {
     userTransferAuthority,
   );
 
+  // WARN: setup for next test
   let info;
   info = await mintA.getAccountInfo(tokenAccountA);
   currentSwapTokenA = info.amount.toNumber();
+
   info = await mintB.getAccountInfo(tokenAccountB);
   currentSwapTokenB = info.amount.toNumber();
+
+
 }
 
+
+// Only test swap() function
 export async function swap(): Promise<void> {
+  
+  
   console.log('Creating swap token a account');
   let userAccountA = await mintA.createAccount(owner.publicKey);
   await mintA.mintTo(userAccountA, owner, [], SWAP_AMOUNT_IN);
@@ -436,6 +478,8 @@ export async function swap(): Promise<void> {
     [],
     SWAP_AMOUNT_IN,
   );
+
+
   console.log('Creating swap token b account');
   let userAccountB = await mintB.createAccount(owner.publicKey);
   let poolAccount = SWAP_PROGRAM_OWNER_FEE_ADDRESS
@@ -484,6 +528,7 @@ export async function swap(): Promise<void> {
     assert(info.amount.toNumber() == HOST_SWAP_FEE);
   }
 }
+
 
 function tradingTokensToPoolTokens(
   sourceAmount: number,

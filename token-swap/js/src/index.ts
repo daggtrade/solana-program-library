@@ -100,14 +100,18 @@ export class TokenSwap {
    * @param tokenAccountB The token swap's Token B account
    * @param mintA The mint of Token A
    * @param mintB The mint of Token B
+   * 
    * @param tradeFeeNumerator The trade fee numerator
    * @param tradeFeeDenominator The trade fee denominator
+   * 
    * @param ownerTradeFeeNumerator The owner trade fee numerator
    * @param ownerTradeFeeDenominator The owner trade fee denominator
    * @param ownerWithdrawFeeNumerator The owner withdraw fee numerator
    * @param ownerWithdrawFeeDenominator The owner withdraw fee denominator
+   * 
    * @param hostFeeNumerator The host fee numerator
    * @param hostFeeDenominator The host fee denominator
+   * 
    * @param curveType The curve type
    * @param payer Pays for the transaction
    */
@@ -171,16 +175,16 @@ export class TokenSwap {
   }
 
   static createInitSwapInstruction(
-    tokenSwapAccount: Account,
+    tokenSwapAccount: Account, // account ?
     authority: PublicKey,
     tokenAccountA: PublicKey,
     tokenAccountB: PublicKey,
-    tokenPool: PublicKey,
+    tokenPool: PublicKey,        // ? poolTokenMint
     feeAccount: PublicKey,
-    tokenAccountPool: PublicKey,
-    tokenProgramId: PublicKey,
-    swapProgramId: PublicKey,
-    nonce: number,
+    tokenAccountPool: PublicKey, // ? poolTokenMint
+    tokenProgramId: PublicKey,  // programe id
+    swapProgramId: PublicKey,   // programe id
+    nonce: number,             // NEEDED
     tradeFeeNumerator: number,
     tradeFeeDenominator: number,
     ownerTradeFeeNumerator: number,
@@ -242,18 +246,24 @@ export class TokenSwap {
     });
   }
 
+  // validate
   static async loadTokenSwap(
     connection: Connection,
     address: PublicKey,
     programId: PublicKey,
     payer: Account,
   ): Promise<TokenSwap> {
+
+    // account
     const data = await loadAccount(connection, address, programId);
+    
     const tokenSwapData = TokenSwapLayout.decode(data);
+    
     if (!tokenSwapData.isInitialized) {
       throw new Error(`Invalid token swap state`);
     }
 
+    // auth
     const [authority] = await PublicKey.findProgramAddress(
       [address.toBuffer()],
       programId,
@@ -323,15 +333,15 @@ export class TokenSwap {
    *
    * @param connection The connection to use
    * @param payer Pays for the transaction
-   * @param tokenSwapAccount The token swap account
+   * @param tokenSwapAccount The token swap account                [?]
    * @param authority The authority over the swap and accounts
    * @param nonce The nonce used to generate the authority
    * @param tokenAccountA: The token swap's Token A account
    * @param tokenAccountB: The token swap's Token B account
-   * @param poolToken The pool token
-   * @param tokenAccountPool The token swap's pool token account
-   * @param tokenProgramId The program ID of the token program
-   * @param swapProgramId The program ID of the token-swap program
+   * @param poolToken The pool token                               []
+   * @param tokenAccountPool The token swap's pool token account   [?]
+   * @param tokenProgramId The program ID of the token program     []
+   * @param swapProgramId The program ID of the token-swap program []
    * @param feeNumerator Numerator of the fee ratio
    * @param feeDenominator Denominator of the fee ratio
    * @return Token object for the newly minted token, Public key of the account holding the total supply of new tokens
