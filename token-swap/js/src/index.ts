@@ -249,17 +249,22 @@ export class TokenSwap {
     programId: PublicKey,
     payer: Account,
   ): Promise<TokenSwap> {
+    
     const data = await loadAccount(connection, address, programId);
+
+    // decode
     const tokenSwapData = TokenSwapLayout.decode(data);
     if (!tokenSwapData.isInitialized) {
       throw new Error(`Invalid token swap state`);
     }
 
+    // * find authority
     const [authority] = await PublicKey.findProgramAddress(
       [address.toBuffer()],
       programId,
     );
 
+    // address is public key
     const poolToken = new PublicKey(tokenSwapData.tokenPool);
     const feeAccount = new PublicKey(tokenSwapData.feeAccount);
     const tokenAccountA = new PublicKey(tokenSwapData.tokenAccountA);
@@ -268,6 +273,7 @@ export class TokenSwap {
     const mintB = new PublicKey(tokenSwapData.mintB);
     const tokenProgramId = new PublicKey(tokenSwapData.tokenProgramId);
 
+    // buffer to instance
     const tradeFeeNumerator = Numberu64.fromBuffer(
       tokenSwapData.tradeFeeNumerator,
     );
@@ -296,7 +302,7 @@ export class TokenSwap {
 
     return new TokenSwap(
       connection,
-      address,
+      address, // address owner is payer
       programId,
       tokenProgramId,
       poolToken,

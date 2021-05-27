@@ -93,21 +93,29 @@ async function getConnection(): Promise<Connection> {
 }
 
 export async function createTokenSwap(): Promise<void> {
+  
   const connection = await getConnection();
+  
+  // 1k SOL?
   const payer = await newAccountWithLamports(connection, 1000000000);
+  // authority
   owner = await newAccountWithLamports(connection, 1000000000);
+
   const tokenSwapAccount = new Account();
 
+  // by programe
   [authority, nonce] = await PublicKey.findProgramAddress(
     [tokenSwapAccount.publicKey.toBuffer()],
     TOKEN_SWAP_PROGRAM_ID,
   );
 
   console.log('creating pool mint');
+
+  // pool
   tokenPool = await Token.createMint(
     connection,
     payer,
-    authority,
+    authority,  // auth
     null,
     2,
     TOKEN_PROGRAM_ID,
@@ -115,25 +123,29 @@ export async function createTokenSwap(): Promise<void> {
 
   console.log('creating pool account');
   tokenAccountPool = await tokenPool.createAccount(owner.publicKey);
+  
   const ownerKey = SWAP_PROGRAM_OWNER_FEE_ADDRESS || owner.publicKey.toString();
+
   feeAccount = await tokenPool.createAccount(new PublicKey(ownerKey));
 
-  console.log('creating token A');
+/*
+  console.log('1 creating token A');
   mintA = await Token.createMint(
     connection,
     payer,
-    owner.publicKey,
-    null,
-    2,
+    owner.publicKey,  // mint auth
+    null,             // freeze auth
+    2,  // decimal
     TOKEN_PROGRAM_ID,
   );
 
-  console.log('creating token A account');
+  console.log('2 creating token A account');
   tokenAccountA = await mintA.createAccount(authority);
-  console.log('minting token A to swap');
+  
+  console.log('3 minting token A to swap');
   await mintA.mintTo(tokenAccountA, owner, [], currentSwapTokenA);
 
-  console.log('creating token B');
+  console.log('1 creating token B');
   mintB = await Token.createMint(
     connection,
     payer,
@@ -143,16 +155,25 @@ export async function createTokenSwap(): Promise<void> {
     TOKEN_PROGRAM_ID,
   );
 
-  console.log('creating token B account');
+  console.log('2 creating token B account');
   tokenAccountB = await mintB.createAccount(authority);
-  console.log('minting token B to swap');
-  await mintB.mintTo(tokenAccountB, owner, [], currentSwapTokenB);
+
+  console.log('3 minting token B to swap');
+  await mintB.mintTo(tokenAccountB, 
+    owner, // auth
+    [], // multi-signer
+    currentSwapTokenB);
+*/
 
   console.log('creating token swap');
+  
+  // 1w
   const swapPayer = await newAccountWithLamports(connection, 10000000000);
+  
+
   tokenSwap = await TokenSwap.createTokenSwap(
     connection,
-    swapPayer,
+    swapPayer, // tokenSwap
     tokenSwapAccount,
     authority,
     tokenAccountA,
@@ -221,8 +242,10 @@ export async function createTokenSwap(): Promise<void> {
 }
 
 export async function depositAllTokenTypes(): Promise<void> {
+  // deps on tokenPool
   const poolMintInfo = await tokenPool.getMintInfo();
   const supply = poolMintInfo.supply.toNumber();
+  // deps on mintA
   const swapTokenA = await mintA.getAccountInfo(tokenAccountA);
   const tokenA = Math.floor(
     (swapTokenA.amount.toNumber() * POOL_TOKEN_AMOUNT) / supply,
@@ -233,7 +256,8 @@ export async function depositAllTokenTypes(): Promise<void> {
   );
 
   const userTransferAuthority = new Account();
-  console.log('Creating depositor token a account');
+
+  console.log('1 Creating depositor token a account');
   const userAccountA = await mintA.createAccount(owner.publicKey);
   await mintA.mintTo(userAccountA, owner, [], tokenA);
   await mintA.approve(
@@ -243,7 +267,7 @@ export async function depositAllTokenTypes(): Promise<void> {
     [],
     tokenA,
   );
-  console.log('Creating depositor token b account');
+  console.log('2 Creating depositor token b account');
   const userAccountB = await mintB.createAccount(owner.publicKey);
   await mintB.mintTo(userAccountB, owner, [], tokenB);
   await mintB.approve(
@@ -253,6 +277,7 @@ export async function depositAllTokenTypes(): Promise<void> {
     [],
     tokenB,
   );
+
   console.log('Creating depositor pool token account');
   const newAccountPool = await tokenPool.createAccount(owner.publicKey);
 
@@ -260,7 +285,7 @@ export async function depositAllTokenTypes(): Promise<void> {
   await tokenSwap.depositAllTokenTypes(
     userAccountA,
     userAccountB,
-    newAccountPool,
+    newAccountPool, // pool account
     userTransferAuthority,
     POOL_TOKEN_AMOUNT,
     tokenA,

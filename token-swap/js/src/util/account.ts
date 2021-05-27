@@ -6,7 +6,9 @@ export async function loadAccount(
   address: PublicKey,
   programId: PublicKey,
 ): Promise<Buffer> {
+
   const accountInfo = await connection.getAccountInfo(address);
+  
   if (accountInfo === null) {
     throw new Error('Failed to find account');
   }
@@ -14,6 +16,6 @@ export async function loadAccount(
   if (!accountInfo.owner.equals(programId)) {
     throw new Error(`Invalid owner: ${JSON.stringify(accountInfo.owner)}`);
   }
-
+  
   return Buffer.from(accountInfo.data);
 }

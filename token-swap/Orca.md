@@ -68,7 +68,29 @@ TokenSwap constructor:
    * payer Pays for the transaction
    * curveType The curve type
 
-
+  constructor(
+    private connection: Connection,
+    public tokenSwap: PublicKey,
+    public swapProgramId: PublicKey,
+    public tokenProgramId: PublicKey,
+    public poolToken: PublicKey,
+    public feeAccount: PublicKey,
+    public authority: PublicKey,
+    public tokenAccountA: PublicKey,
+    public tokenAccountB: PublicKey,
+    public mintA: PublicKey,
+    public mintB: PublicKey,
+    public tradeFeeNumerator: Numberu64,
+    public tradeFeeDenominator: Numberu64,
+    public ownerTradeFeeNumerator: Numberu64,
+    public ownerTradeFeeDenominator: Numberu64,
+    public ownerWithdrawFeeNumerator: Numberu64,
+    public ownerWithdrawFeeDenominator: Numberu64,
+    public hostFeeNumerator: Numberu64,
+    public hostFeeDenominator: Numberu64,
+    public curveType: number,
+    public payer: Account,
+    
 ## market
 
 {
