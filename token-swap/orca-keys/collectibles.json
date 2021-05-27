@@ -1,0 +1,22 @@
+{
+   "GUPPY":{
+      "mint":"guppyrZyEX9iTPSu92pi8T71Zka7xd6PrsTJrXRW6u1",
+      "decimals":0
+   },
+   "WHALE":{
+      "mint":"whaLeHav12EhGK19u6kKbLRwC9E1EATGnm6MWbBCcUW",
+      "decimals":0
+   },
+   "KILLER WHALE":{
+      "mint":"kLwhLkZRt6CadPHRBsgfhRCKXX426WMBnhoGozTduvk",
+      "decimals":0
+   },
+   "STARFISH":{
+      "mint":"star2pH7rVWscs743JGdCAL8Lc9nyJeqx7YQXkGUnWf",
+      "decimals":6
+   },
+   "CLOWNFISH":{
+      "mint":"cLownTTaiiQMoyMmFjfmSGowi8HyNhCtTLFcrNKnqX6",
+      "decimals":0
+   }
+}

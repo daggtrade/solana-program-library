@@ -95,6 +95,7 @@ export class TokenSwap {
    * @param swapProgramId The program ID of the token-swap program
    * @param tokenProgramId The program ID of the token program
    * @param poolToken The pool token
+   * @param feeAccount Fed account
    * @param authority The authority over the swap and accounts
    * @param tokenAccountA The token swap's Token A account
    * @param tokenAccountB The token swap's Token B account

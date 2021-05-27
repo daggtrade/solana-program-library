@@ -1,0 +1,17 @@
+{
+  "devnet": {
+    "serumTokenSwap": "SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8",
+    "tokenSwap": "3xQ8SWv2GaFXXpHZNqkXsdxq5DZciHBz6ZFoPPfbFd7U",
+    "token": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+  },
+  "testnet": {
+    "serumTokenSwap": "SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8",
+    "tokenSwap": "5h15EfjmQj4mAiWt2ywm59mzWp1Y8HaZquaFYdvVN9oZ",
+    "token": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+  },
+  "mainnet": {
+    "serumTokenSwap": "SwaPpA9LAaLfeLi3a68M4DjnLqgtticKg6CnyNwgAC8",
+    "tokenSwap": "DjVE6JNiYqPL2QXyCUUh8rNjHrbz9hXHNYt99MQ59qw1",
+    "token": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+  }
+}
