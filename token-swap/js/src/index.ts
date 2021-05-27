@@ -361,6 +361,7 @@ export class TokenSwap {
     hostFeeDenominator: number,
     curveType: number,
   ): Promise<TokenSwap> {
+    
     let transaction;
     const tokenSwap = new TokenSwap(
       connection,
@@ -401,6 +402,8 @@ export class TokenSwap {
       }),
     );
 
+    console.log('createInitSwapInstruction...');
+    
     const instruction = TokenSwap.createInitSwapInstruction(
       tokenSwapAccount,
       authority,
@@ -423,7 +426,11 @@ export class TokenSwap {
       curveType,
     );
 
+    console.log('createAccount and InitializeSwap');
+
+    
     transaction.add(instruction);
+
     await sendAndConfirmTransaction(
       'createAccount and InitializeSwap',
       connection,
@@ -431,6 +438,9 @@ export class TokenSwap {
       payer,
       tokenSwapAccount,
     );
+
+    console.log('returning...');
+    
 
     return tokenSwap;
   }
