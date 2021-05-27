@@ -112,9 +112,9 @@ export async function createTokenSwap(): Promise<void> {
   console.log('creating pool mint');
   tokenPool = await Token.createMint(
     connection,
-    payer,      // TODO:  payer ??
-    authority, // TODO: authority
-    null,
+    payer,              // payer
+    authority,          // mint authority
+    null, // fee auth
     2,
     TOKEN_PROGRAM_ID,
   );
@@ -127,8 +127,7 @@ export async function createTokenSwap(): Promise<void> {
   const ownerKey = SWAP_PROGRAM_OWNER_FEE_ADDRESS || owner.publicKey.toString();
   feeAccount = await tokenPool.createAccount(new PublicKey(ownerKey));
 
-
-  /// TOken A
+  // Token A
   console.log('creating token A');
   mintA = await Token.createMint(
     connection,
@@ -146,7 +145,7 @@ export async function createTokenSwap(): Promise<void> {
   await mintA.mintTo(tokenAccountA, owner, [], currentSwapTokenA); // A amount
 
 
-  /// TOken B
+  /// Token B
   console.log('creating token B');
   mintB = await Token.createMint(
     connection,
@@ -487,11 +486,13 @@ export async function swap(): Promise<void> {
     : null;
 
   console.log('Swapping');
+
   await tokenSwap.swap(
     userAccountA,
     tokenAccountA,
     tokenAccountB,
     userAccountB,
+
     poolAccount,
     userTransferAuthority,
     SWAP_AMOUNT_IN,
